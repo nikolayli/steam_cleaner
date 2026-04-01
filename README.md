@@ -2,5 +2,5 @@
 
 ## Install
 ```
-wget https://github.com && chmod +x cleaner.py && ./cleaner.py
+wget https://githubusercontent.com -O cleaner.py && chmod +x cleaner.py && ./cleaner.py
 ```
