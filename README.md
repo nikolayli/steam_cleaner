@@ -1,6 +1,14 @@
 ## deck_cleaner
+Steam Deck Shader & Compatdata Purge.
 
-## Install
+## run online(without saving)
 ```
-wget https://githubusercontent.com -O cleaner.py && chmod +x cleaner.py && ./cleaner.py
+curl -sSL https://raw.githubusercontent.com/nikolayli/deck_cleaner/main/cleaner.py | python3
+```
+
+## download and run locally
+```
+curl -LO https://raw.githubusercontent.com/nikolayli/deck_cleaner/main/cleaner.py
+chmod +x cleaner.py
+./cleaner.py
 ```
