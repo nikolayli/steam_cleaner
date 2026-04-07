@@ -7,14 +7,14 @@
 ![license](https://img.shields.io/github/license/nikolayli/steam_cleaner?style=for-the-badge)
 ![language](https://img.shields.io/github/languages/top/nikolayli/steam_cleaner?style=for-the-badge)
 
-Simple Steam shader and compatdata cleanup script for SteamOS and Linux distributions.
+适用于 SteamOS 和 Linux 发行版的 Steam 着色器及兼容性数据清理脚本。
 
-## run online(without saving)
+## 在线运行（不保存文件）
 ```
 curl -sSL https://raw.githubusercontent.com/nikolayli/steam_cleaner/main/cleaner.py | python3
 ```
 
-## download and run locally
+## 下载并本地运行
 ```
 curl -LO https://raw.githubusercontent.com/nikolayli/steam_cleaner/main/cleaner.py
 chmod +x cleaner.py
