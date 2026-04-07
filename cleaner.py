@@ -5,9 +5,10 @@ import re
 import shutil
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 GITHUB_RAW_URL = (
     "https://raw.githubusercontent.com/nikolayli/deck_cleaner/main/cleaner.py"
 )
@@ -76,7 +77,7 @@ def get_steam_api_list():
         with urllib.request.urlopen(url, timeout=5) as response:
             data = json.loads(response.read().decode())
             return {str(app["appid"]): app["name"] for app in data["applist"]["apps"]}
-    except:
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError):
         return {}
 
 
@@ -105,7 +106,7 @@ def get_folder_size(path):
                 elif entry.is_dir():
                     total += get_folder_size(entry.path)
         return total // (1024 * 1024)
-    except:
+    except OSError:
         return 0
 
 
@@ -211,3 +212,6 @@ def main(mode="shadercache"):
 
 if __name__ == "__main__":
     main()
+
+# test
+# test
