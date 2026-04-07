@@ -1,12 +1,12 @@
 ## steam_cleaner
 
-[![en](https://img.shields.io/en-red)](./README.md)
-[![zh-CN](https://img.shields.io/badge/zh-blue)](./README.zh-CN.md)
+[![en](https://img.shields.io/badge/en-red?style=for-the-badge)](./README.md)
+[![zh-CN](https://img.shields.io/badge/zh-blue?style=for-the-badge)](./README.zh-CN.md)
 
 
-![views](https://shields.io)
-![license](https://shields.io)
-![language](https://shields.io)
+![views](https://img.shields.io/github/search/nikolayli/steam_cleaner/cleaner.py)
+![license](https://img.shields.io/github/license/nikolayli/steam_cleaner)
+![language](https://img.shields.io/github/languages/top/nikolayli/steam_cleaner)
 
 Simple Steam shader and compatdata cleanup script for SteamOS and Linux distributions.
 
