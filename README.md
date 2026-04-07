@@ -1,5 +1,5 @@
 ## deck_cleaner
-Steam Deck Shader & Compatdata Purge.
+Simple Steam shader and compatdata cleanup script for SteamOS and Linux distributions.
 
 ## run online(without saving)
 ```

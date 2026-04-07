@@ -8,7 +8,7 @@ import sys
 import urllib.error
 import urllib.request
 
-VERSION = "0.0.2"
+VERSION = "0.1.0"
 GITHUB_RAW_URL = (
     "https://raw.githubusercontent.com/nikolayli/deck_cleaner/main/cleaner.py"
 )
@@ -21,24 +21,20 @@ def check_for_updates():
     try:
         with urllib.request.urlopen(GITHUB_RAW_URL, timeout=3) as response:
             content = response.read().decode()
-
             match = re.search(r'VERSION = "(.*?)"', content)
-
             if match:
                 remote_version = match.group(1)
-
                 if remote_version > VERSION:
                     ask = subprocess.run(
                         [
                             "zenity",
                             "--question",
                             "--title",
-                            "The update is available",
+                            "Update available",
                             "--text",
-                            f"A new version of {remote_version} is available (you have {VERSION}). Update?",
+                            f"New version {remote_version} available (current: {VERSION}). Update?",
                         ]
                     )
-
                     if ask.returncode == 0:
                         with open(__file__, "w") as f:
                             f.write(content)
@@ -47,13 +43,10 @@ def check_for_updates():
                                 "zenity",
                                 "--info",
                                 "--text",
-                                "The script has been updated! Please rerun it.",
+                                "Updated! Please rerun the script.",
                             ]
                         )
                         sys.exit(0)
-            else:
-                print("Could not find version info in the remote file.")
-
     except Exception as e:
         print(f"Error checking for updates: {e}")
 
@@ -81,119 +74,88 @@ def get_steam_api_list():
         return {}
 
 
-def get_name_from_logs(appid):
-    for log in ["controller_ui.txt", "content_log.txt"]:
-        log_path = os.path.join(LOGS_PATH, log)
-        if os.path.exists(log_path):
-            with open(log_path, "r", errors="ignore") as f:
-                for line in reversed(f.readlines()):
-                    if appid in line:
-                        match = re.search(r"AppID\s\d+,\s(.*)", line) or re.search(
-                            r"AppId=(\d+)\s(.*)", line
-                        )
-                        if match:
-                            return match.groups()[-1].strip()
-    return "Unknown"
-
-
 def get_folder_size(path):
     try:
         total = 0
-        with os.scandir(path) as it:
-            for entry in it:
-                if entry.is_file():
-                    total += entry.stat().st_size
-                elif entry.is_dir():
-                    total += get_folder_size(entry.path)
+        for root, dirs, files in os.walk(path):
+            for f in files:
+                total += os.path.getsize(os.path.join(root, f))
         return total // (1024 * 1024)
     except OSError:
         return 0
 
 
-def collect_data(target_type, library_paths, api_names):
-    info_list = []
-    target_dir = os.path.join(STEAMAPPS, target_type)
-    if not os.path.exists(target_dir):
-        return []
-
-    for appid in os.listdir(target_dir):
-        full_path = os.path.join(target_dir, appid)
-        if not os.path.isdir(full_path) or not appid.isdigit():
-            continue
-        if "Proton" in appid:
+def collect_data(library_paths, api_names):
+    combined_list = []
+    for target_type in ["shadercache", "compatdata"]:
+        target_dir = os.path.join(STEAMAPPS, target_type)
+        if not os.path.exists(target_dir):
             continue
 
-        name = None
-        for lib in library_paths:
-            m_path = os.path.join(lib, f"appmanifest_{appid}.acf")
-            if os.path.exists(m_path):
-                with open(m_path, "r", errors="ignore") as f:
-                    m = re.search(r'"name"\s*"(.*?)"', f.read())
-                    if m:
-                        name = m.group(1)
-                        break
+        for appid in os.listdir(target_dir):
+            full_path = os.path.join(target_dir, appid)
+            if not os.path.isdir(full_path) or not appid.isdigit():
+                continue
 
-        info = "Local"
-        if not name:
-            name = api_names.get(appid)
-            info = "Uninstalled?" if name else "Non-Steam"
-        if not name:
-            name = get_name_from_logs(appid)
-        if "Proton" in (name or ""):
-            continue
+            name = None
+            for lib in library_paths:
+                m_path = os.path.join(lib, f"appmanifest_{appid}.acf")
+                if os.path.exists(m_path):
+                    with open(m_path, "r", errors="ignore") as f:
+                        m = re.search(r'"name"\s*"(.*?)"', f.read())
+                        if m:
+                            name = m.group(1)
+                            break
 
-        size = get_folder_size(full_path)
-        info_list.append(
-            ["FALSE", str(size), appid, name or "Unknown", info, full_path]
-        )
+            if not name:
+                name = api_names.get(appid, "Unknown")
+            if "Proton" in name or "Steam Linux Runtime" in name:
+                continue
 
-    return sorted(info_list, key=lambda x: int(x[1]), reverse=True)
+            size = get_folder_size(full_path)
+            # Столбцы: Choice, Name, Size, ID, Type, Path
+            combined_list.append(
+                ["FALSE", name, str(size), appid, target_type, full_path]
+            )
+
+    return sorted(combined_list, key=lambda x: int(x[2]), reverse=True)
 
 
-def main(mode="shadercache"):
+def main():
     check_for_updates()
-
-    next_mode = "compatdata" if mode == "shadercache" else "shadercache"
     libs = get_library_folders()
     api_names = get_steam_api_list()
-    data = collect_data(mode, libs, api_names)
+    data = collect_data(libs, api_names)
 
     cmd = [
         "zenity",
         "--list",
         "--checklist",
         "--title",
-        f"Cleanup {mode} (v{VERSION})",
+        f"Steam Cleaner (v{VERSION})",
         "--width=1100",
         "--height=720",
         "--print-column=6",
         "--separator=|",
         "--column=Choice",
-        "--column=Size (MB)",
-        "--column=ID",
         "--column=Name",
-        "--column=Info",
+        "--column=ID",
+        "--column=Size (MB)",
+        "--column=Type",
         "--column=Path",
-        "--extra-button",
-        next_mode,
     ]
     for row in data:
         cmd.extend(row)
 
     proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        return
+
     res = proc.stdout.strip()
+    paths_to_delete = [p for p in res.split("|") if p]
 
-    if proc.returncode == 1:
-        if res == next_mode:
-            main(next_mode)
-        return
-
-    paths_to_delete = res.split("|")
-    if not paths_to_delete or paths_to_delete == [""]:
-        return
-
-    if (
-        subprocess.run(
+    if paths_to_delete:
+        confirm = subprocess.run(
             [
                 "zenity",
                 "--question",
@@ -201,17 +163,13 @@ def main(mode="shadercache"):
                 f"Delete {len(paths_to_delete)} folders?",
             ],
             capture_output=True,
-        ).returncode
-        == 0
-    ):
-        for i, p in enumerate(paths_to_delete):
-            if os.path.exists(p):
-                shutil.rmtree(p)
-        subprocess.run(["zenity", "--info", "--text", "Done!"])
+        )
+        if confirm.returncode == 0:
+            for p in paths_to_delete:
+                if os.path.exists(p):
+                    shutil.rmtree(p)
+            subprocess.run(["zenity", "--info", "--text", "Done!"])
 
 
 if __name__ == "__main__":
     main()
-
-# test
-# test
