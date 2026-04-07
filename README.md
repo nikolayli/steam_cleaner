@@ -1,10 +1,11 @@
 ## steam_cleaner
 
-![Views](https://komarev.com)
-![License](https://shields.io)
-![Language](https://shields.io)
+[![en](https://shields.io)](./README.md)
+[![zh-CN](https://shields.io)](./README.zh-CN.md)
 
-[English](#english) | [简体中文](#chinese)
+![views](https://shields.io)
+![license](https://shields.io)
+![language](https://shields.io)
 
 <a name="english"></a>
 ## English
