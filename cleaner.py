@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import json
-import locale
 import os
 import re
 import shutil
@@ -15,66 +14,6 @@ GITHUB_RAW_URL = (
 )
 STEAM_ROOT = os.path.expanduser("~/.steam/steam")
 STEAMAPPS = os.path.join(STEAM_ROOT, "steamapps")
-LOCALES = {
-    "en": {
-        "title": f"Steam Cleaner (v{VERSION})",
-        "update_title": "Update available",
-        "update_text": "New version {v} available (current: {cv}). Update?",
-        "updated_text": "Updated! Please rerun the script.",
-        "col_choice": "Choice",
-        "col_name": "Name",
-        "col_id": "ID",
-        "col_size": "Size (MB)",
-        "col_type": "Type",
-        "col_path": "Path",
-        "confirm_delete": "Delete {n} folders?",
-        "done": "Done!",
-        "lang_select": "Select Language / 选择语言",
-    },
-    "zh": {
-        "title": f"Steam 清理工具 (v{VERSION})",
-        "update_title": "有可用更新",
-        "update_text": "发现新版本 {v}（当前版本：{cv}）。是否更新？",
-        "updated_text": "更新完毕！请重新运行脚本。",
-        "col_choice": "选择",
-        "col_name": "游戏名称",
-        "col_id": "AppID",
-        "col_size": "大小 (MB)",
-        "col_type": "类型",
-        "col_path": "路径",
-        "confirm_delete": "确认删除这 {n} 个文件夹吗？",
-        "done": "完成！",
-        "lang_select": "选择语言 / Select Language",
-    },
-}
-
-
-def get_locale():
-    sys_lang = locale.getdefaultlocale()[0]
-    default = "zh" if sys_lang and sys_lang.startswith("zh") else "en"
-
-    cmd = [
-        "zenity",
-        "--list",
-        "--radiolist",
-        "--title",
-        "Language",
-        "--column",
-        "",
-        "--column",
-        "Language",
-        "TRUE" if default == "en" else "FALSE",
-        "English",
-        "TRUE" if default == "zh" else "FALSE",
-        "Chinese (中文)",
-    ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
-    if "Chinese" in res.stdout:
-        return LOCALES["zh"]
-    return LOCALES["en"]
-
-
-L = get_locale()
 
 
 def check_for_updates():
@@ -90,16 +29,21 @@ def check_for_updates():
                             "zenity",
                             "--question",
                             "--title",
-                            L["update_title"],
+                            "Update available",
                             "--text",
-                            L["update_text"].format(v=remote_version, cv=VERSION),
+                            f"New version {remote_version} available (current: {VERSION}). Update?",
                         ]
                     )
                     if ask.returncode == 0:
                         with open(__file__, "w") as f:
                             f.write(content)
                         subprocess.run(
-                            ["zenity", "--info", "--text", L["updated_text"]]
+                            [
+                                "zenity",
+                                "--info",
+                                "--text",
+                                "Updated! Please rerun the script.",
+                            ]
                         )
                         sys.exit(0)
     except Exception as e:
@@ -181,17 +125,17 @@ def main():
         "--list",
         "--checklist",
         "--title",
-        L["title"],
+        f"Steam Cleaner (v{VERSION})",
         "--width=1100",
         "--height=720",
         "--print-column=6",
         "--separator=|",
-        f"--column={L['col_choice']}",
-        f"--column={L['col_name']}",
-        f"--column={L['col_id']}",
-        f"--column={L['col_size']}",
-        f"--column={L['col_type']}",
-        f"--column={L['col_path']}",
+        "--column=Choice",
+        "--column=Name",
+        "--column=ID",
+        "--column=Size (MB)",
+        "--column=Type",
+        "--column=Path",
     ]
     for row in data:
         cmd.extend(row)
@@ -209,14 +153,14 @@ def main():
                 "zenity",
                 "--question",
                 "--text",
-                L["confirm_delete"].format(n=len(paths_to_delete)),
+                f"Delete {len(paths_to_delete)} folders?",
             ]
         )
         if confirm.returncode == 0:
             for p in paths_to_delete:
                 if os.path.exists(p):
                     shutil.rmtree(p)
-            subprocess.run(["zenity", "--info", "--text", L["done"]])
+            subprocess.run(["zenity", "--info", "--text", "Done!"])
 
 
 if __name__ == "__main__":
