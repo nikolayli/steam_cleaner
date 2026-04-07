@@ -1,7 +1,7 @@
 ## steam_cleaner
 
-[![en](https://img.shields.io/badge/en-red)](./README.md)
-[![zh-CN](https://shields.io)](./README.zh-CN.md)
+[![en](https://img.shields.io/en-red)](./README.md)
+[![zh-CN](https://img.shields.io/badge/zh-blue)](./README.zh-CN.md)
 
 
 ![views](https://shields.io)
